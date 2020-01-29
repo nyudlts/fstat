@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/google/go-tika/tika"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
 )
@@ -30,7 +29,7 @@ func main() {
 	tika_client = tika.NewClient(nil, "http://localhost:9998")
 	dir := os.Args[1]
 	count := 0
-	var byte_size int64 = 0
+	var byte_size float64 = 0.0
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -43,7 +42,7 @@ func main() {
 				if !(info.IsDir()) {
 					count = count + 1
 					size := info.Size()
-					byte_size = byte_size + size
+					byte_size = byte_size + float64(size)
 					mime, _ := tika_client.Detect(cntxt, f)
 					name :=  info.Name()
 					ext := filepath.Ext(name)
@@ -59,8 +58,8 @@ func main() {
 		return
 	}
 
-	bs_gb := math.Floor(((float64(byte_size) / 1024.0) / 1024.0) / 1024.0)
-	output_file.WriteString(fmt.Sprintf("'','','',%d GB,''\n", bs_gb))
+	bs_gb := ((byte_size / 1024.0) / 1024.0) / 1024.0
+	output_file.WriteString(fmt.Sprintf("'','','',%.2f GB,''\n", bs_gb))
 
 	log.Println("* Complete")
 	log.Printf("* %d files scanned", count)
