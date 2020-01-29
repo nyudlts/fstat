@@ -7,26 +7,33 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"./cmd"
 )
 
 var output_file *os.File
 var cntxt = context.Background()
 var tika_client *tika.Client
 
-func createWriter () *os.File {
-	output_file, err := os.Create("file-stats.csv")
+func main() {
+	cmd.Execute()
+	cmd.Walk()
+	cmd.ShutDown()
+}
+
+
+
+func createWriter (csv_name string) *os.File {
+	output_file, err := os.Create(csv_name)
 	if err != nil { panic(err) }
 	output_file.WriteString(fmt.Sprintf("'%s','%s','%s','%s','%s' \n", "name","mime","ext","size","path"))
 	return output_file
 }
 
-
-func main() {
+func ignore() {
 	log.Println("* Running FileStats")
-
-	output_file = createWriter()
+	output_file = createWriter("test")
 	defer output_file.Close()
-	tika_client = tika.NewClient(nil, "http://localhost:9998")
+
 	dir := os.Args[1]
 	count := 0
 	var byte_size float64 = 0.0
