@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/google/go-tika/tika"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -64,24 +65,25 @@ func initConfig() {
 func createOutputFile(output_file_name string) *os.File {
 	of, err := os.Create(output_file_name)
 	if err != nil {
-		fmt.Printf("* error creating output file %s: %v\n", output_file_name, err)
+		log.Printf("* error creating output file %s: %v\n", output_file_name, err)
 	}
 	output_file.WriteString(fmt.Sprintf("'%s','%s','%s','%s','%s' \n", "name","mime","ext","size","path"))
 	return of
 }
 
 func Walk() {
-	fmt.Println("* running fstat")
+	log.Println("* running fstat")
 	count := 0
 	var byte_size float64 = 0.0
 
 	err := filepath.Walk(root_dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Printf("* failure accessing a path %q: %v\n", path, err)
+			log.Printf("* failure accessing a path %q: %v\n", path, err)
 		} else {
 			f, err := os.Open(path)
+			defer f.Close()
 			if err != nil {
-				fmt.Printf("* error walking the path %q: %v\n", root_dir, err)
+				log.Printf("* error walking the path %q: %v\n", root_dir, err)
 			}else {
 				if !(info.IsDir()) {
 					count = count + 1
@@ -98,19 +100,19 @@ func Walk() {
 	})
 
 	if err != nil {
-		fmt.Printf("* error walking the path %q: %v\n", root_dir, err)
+		log.Printf("* error walking the path %q: %v\n", root_dir, err)
 		return
 	}
 
 	bs_gb := ((byte_size / 1024.0) / 1024.0) / 1024.0
 	output_file.WriteString(fmt.Sprintf("'','','',%.2f GB,''\n", bs_gb))
 
-	fmt.Println("* fstat complete")
-	fmt.Printf("* %d files scanned\n", count)
+	log.Println("* fstat complete")
+	log.Printf("* %d files scanned\n", count)
 }
 
 func ShutDown() {
-	fmt.Println("* fstat shutting down")
+	log.Println("* fstat shutting down")
 	output_file.Close()
 	os.Exit(0)
 }
